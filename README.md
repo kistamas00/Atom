@@ -1,2 +1,2 @@
 # Atom
-Java based genetic algorithm test with neural networ.
+Java based genetic algorithm test with neural network.
