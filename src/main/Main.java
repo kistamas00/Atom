@@ -10,8 +10,10 @@ public class Main {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		Arena arena = new Arena(Arrays.asList(new Atom()));
-		Frame frame = new Frame(arena);
+		Atom controlledAtom = new Atom();
+
+		Arena arena = new Arena(Arrays.asList(controlledAtom, new Atom()));
+		Frame frame = new Frame(arena, controlledAtom);
 
 		while (true) {
 

@@ -2,25 +2,35 @@ package model;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
+
+import model.geometry.Coordinate;
+import model.geometry.Vector;
 
 public class Arena {
 
 	public static final int WIDTH = 500;
 	public static final int HEIGHT = 500;
-	private final List<Atom> atoms;
+	private final Set<Atom> atoms;
 
-	public Arena(List<Atom> atoms) {
-		this.atoms = atoms;
+	public Arena(Collection<? extends Atom> atoms) {
+
+		this.atoms = new HashSet<>();
+
+		this.atoms.addAll(atoms);
 	}
 
 	public void doStep() {
 
+		// move every atom
 		for (Atom atom : atoms) {
 
-			List<Double> partsOfView = new ArrayList<>();
+			double[] atomInput = new double[Atom.NUMBER_OF_VIEW_RAYS];
+			Arrays.fill(atomInput, -1);
 
 			for (Atom viewableAtom : atoms.stream().filter(
 					targetAtom -> targetAtom.getPosition().getDistanceFrom(
@@ -29,10 +39,66 @@ public class Arena {
 							&& targetAtom != atom)
 					.collect(Collectors.toList())) {
 
+				Coordinate[] pointsOfView = atom.getPointsOfView();
+				for (int i = 0; i < pointsOfView.length; i++) {
+
+					Coordinate pointOfView = pointsOfView[i];
+
+					final Vector dirVec = new Vector(atom.getPosition(),
+							pointOfView);
+					final Vector norVec = new Vector(-dirVec.getY(),
+							dirVec.getX());
+					final double A = norVec.getX();
+					final double B = norVec.getY();
+					final double C = -(A * pointOfView.getX()
+							+ B * pointOfView.getY());
+					final double d = Math
+							.abs(A * viewableAtom.getPosition().getX()
+									+ B * viewableAtom.getPosition().getY() + C)
+							/ Math.sqrt(A * A + B * B);
+
+					double viewAngleDeg = Math.toDegrees(
+							dirVec.getAngleWith(new Vector(atom.getPosition(),
+									viewableAtom.getPosition())));
+
+					if (d <= viewableAtom.getSize() && viewAngleDeg < 90) {
+
+						double distanceRate = atom.getPosition()
+								.getDistanceFrom(viewableAtom.getPosition())
+								/ atom.getDistanceOfView();
+
+						if (atomInput[i] == -1
+								|| atomInput[i] >= distanceRate) {
+							atomInput[i] = distanceRate > 1 ? 1 : distanceRate;
+						}
+					}
+				}
 			}
 
-			atom.move(partsOfView.stream().mapToDouble(f -> f).toArray());
+			atom.move(atomInput);
 		}
+
+		// remove dead atoms
+		Set<Atom> killedAtoms = new HashSet<>();
+		for (Atom atom : atoms) {
+
+			atoms.forEach(targetAtom -> {
+
+				final double minSize = atom.getSize() < targetAtom.getSize()
+						? atom.getSize() : targetAtom.getSize();
+				if (targetAtom.getPosition()
+						.getDistanceFrom(atom.getPosition()) < minSize
+						&& atom.getSize() > targetAtom.getSize()
+						&& !killedAtoms.contains(targetAtom)
+						&& !killedAtoms.contains(atom) && targetAtom != atom) {
+
+					atom.eat(targetAtom);
+					killedAtoms.add(targetAtom);
+				}
+			});
+		}
+
+		atoms.removeAll(killedAtoms);
 	}
 
 	public void draw(Graphics2D target) {

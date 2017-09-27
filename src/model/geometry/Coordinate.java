@@ -14,8 +14,34 @@ public class Coordinate {
 		this(i, i);
 	}
 
+	public Coordinate(Coordinate c) {
+		this(c.x, c.y);
+	}
+
 	public double getDistanceFrom(Coordinate c) {
 		return new Vector(this, c).getLength();
+	}
+
+	public Coordinate getCoordinateAfterTranslateBy(Vector v) {
+		return new Coordinate(this.x + v.x, this.y + v.y);
+	}
+
+	public Coordinate getCoordinateAfterRotateBy(double rad) {
+		return new Coordinate(Math.cos(rad) * this.x - Math.sin(rad) * this.y,
+				Math.sin(rad) * this.x + Math.cos(rad) * this.y);
+	}
+
+	public Coordinate getCoordinateAfterRotate(Coordinate point, double rad) {
+
+		Coordinate result = new Coordinate(this);
+		Vector translateVector = new Vector(point, new Coordinate(0));
+
+		result = result.getCoordinateAfterTranslateBy(translateVector);
+		result = result.getCoordinateAfterRotateBy(rad);
+
+		translateVector.multiplyLength(-1);
+
+		return result.getCoordinateAfterTranslateBy(translateVector);
 	}
 
 	public double getX() {

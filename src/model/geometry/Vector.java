@@ -32,8 +32,18 @@ public class Vector extends Coordinate {
 		return Math.sqrt(x * x + y * y);
 	}
 
-	private void multiplyLength(double count) {
+	public double getAngleWith(Vector v) {
+		return Math.acos((this.x * v.x + this.y * v.y) / this.getLength()
+				/ v.getLength());
+	}
+
+	public void multiplyLength(double count) {
 		this.x *= count;
 		this.y *= count;
+	}
+
+	public void add(Vector v) {
+		this.x += v.x;
+		this.y += v.y;
 	}
 }

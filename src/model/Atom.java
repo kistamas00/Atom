@@ -1,5 +1,6 @@
 package model;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Random;
 
@@ -8,11 +9,11 @@ import model.geometry.Vector;
 
 public class Atom {
 
-	public static final int NUMBER_OF_SECTORS_OF_VIEW = 4;
-	public static final int NUMBER_OF_SECTORPARTS = 4;
+	public static final int NUMBER_OF_VIEW_RAYS = 3;
 
 	private final Coordinate position;
 	private final Vector velocity;
+	private double[] lastView;
 	private long timeOfPreviousMove;
 	private double size;
 	private double distanceOfView;
@@ -33,9 +34,11 @@ public class Atom {
 
 	public void move(double[] view) {
 
-		if (view.length != NUMBER_OF_SECTORS_OF_VIEW * NUMBER_OF_SECTORPARTS) {
+		if (view.length != NUMBER_OF_VIEW_RAYS) {
 			throw new IllegalStateException(
 					"View parameter doesn't match the number of viewable fields!");
+		} else {
+			lastView = view;
 		}
 
 		// TODO make a decision
@@ -66,12 +69,54 @@ public class Atom {
 
 	}
 
+	public void eat(Atom a) {
+		// TODO increase size
+	}
+
+	private void die() {
+		// TODO implement
+	}
+
+	public Coordinate[] getPointsOfView() {
+
+		Coordinate[] result = new Coordinate[NUMBER_OF_VIEW_RAYS];
+
+		double sectorAngleInRadian = Math
+				.toRadians(360.0 / NUMBER_OF_VIEW_RAYS);
+		Coordinate pointOfCircumfence = position.getCoordinateAfterTranslateBy(
+				new Vector(0, -this.distanceOfView));
+		for (int i = 0; i < NUMBER_OF_VIEW_RAYS; i++) {
+			result[i] = pointOfCircumfence;
+			pointOfCircumfence = pointOfCircumfence.getCoordinateAfterRotate(
+					this.position, sectorAngleInRadian);
+		}
+
+		return result;
+	}
+
 	public void drawVisibility(Graphics2D target) {
 		target.drawOval((int) Math.round(position.getX() - distanceOfView),
 				(int) Math.round(position.getY() - distanceOfView),
 				(int) Math.round(2 * distanceOfView),
 				(int) Math.round(2 * distanceOfView));
 
+		Color originalColor = target.getColor();
+		Coordinate[] pointsOfView = getPointsOfView();
+		for (int i = 0; i < pointsOfView.length; i++) {
+
+			Coordinate pointOfView = pointsOfView[i];
+
+			if (lastView != null && lastView[i] >= 0) {
+				target.setColor(Color.ORANGE);
+			}
+
+			target.drawLine((int) Math.round(position.getX()),
+					(int) Math.round(position.getY()),
+					(int) Math.round(pointOfView.getX()),
+					(int) Math.round(pointOfView.getY()));
+
+			target.setColor(originalColor);
+		}
 	}
 
 	public void drawVelocity(Graphics2D target) {
@@ -97,5 +142,9 @@ public class Atom {
 
 	public double getSize() {
 		return size;
+	}
+
+	public Vector getVelocity() {
+		return velocity;
 	}
 }
