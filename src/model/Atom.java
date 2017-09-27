@@ -8,6 +8,9 @@ import model.geometry.Vector;
 
 public class Atom {
 
+	public static final int NUMBER_OF_SECTORS_OF_VIEW = 4;
+	public static final int NUMBER_OF_SECTORPARTS = 4;
+
 	private final Coordinate position;
 	private final Vector velocity;
 	private long timeOfPreviousMove;
@@ -23,12 +26,18 @@ public class Atom {
 		this.velocity = new Vector(0);
 
 		this.size = 5;
-		this.distanceOfView = 25;
+		this.distanceOfView = 30;
 
 		this.timeOfPreviousMove = System.currentTimeMillis();
 	}
 
-	public void move() {
+	public void move(double[] view) {
+
+		if (view.length != NUMBER_OF_SECTORS_OF_VIEW * NUMBER_OF_SECTORPARTS) {
+			throw new IllegalStateException(
+					"View parameter doesn't match the number of viewable fields!");
+		}
+
 		// TODO make a decision
 
 		// TODO recalculate velocity
@@ -62,6 +71,7 @@ public class Atom {
 				(int) Math.round(position.getY() - distanceOfView),
 				(int) Math.round(2 * distanceOfView),
 				(int) Math.round(2 * distanceOfView));
+
 	}
 
 	public void drawVelocity(Graphics2D target) {
@@ -75,5 +85,17 @@ public class Atom {
 		target.fillOval((int) Math.round(position.getX() - size),
 				(int) Math.round(position.getY() - size),
 				(int) Math.round(2 * size), (int) Math.round(2 * size));
+	}
+
+	public double getDistanceOfView() {
+		return distanceOfView;
+	}
+
+	public Coordinate getPosition() {
+		return position;
+	}
+
+	public double getSize() {
+		return size;
 	}
 }

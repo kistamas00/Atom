@@ -2,7 +2,9 @@ package model;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Arena {
 
@@ -15,8 +17,21 @@ public class Arena {
 	}
 
 	public void doStep() {
+
 		for (Atom atom : atoms) {
-			atom.move();
+
+			List<Double> partsOfView = new ArrayList<>();
+
+			for (Atom viewableAtom : atoms.stream().filter(
+					targetAtom -> targetAtom.getPosition().getDistanceFrom(
+							atom.getPosition()) < targetAtom.getSize()
+									+ atom.getDistanceOfView()
+							&& targetAtom != atom)
+					.collect(Collectors.toList())) {
+
+			}
+
+			atom.move(partsOfView.stream().mapToDouble(f -> f).toArray());
 		}
 	}
 
