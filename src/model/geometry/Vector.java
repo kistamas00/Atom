@@ -10,6 +10,10 @@ public class Vector extends Coordinate {
 		super(i);
 	}
 
+	public Vector(Coordinate a, Coordinate b) {
+		super(b.x - a.x, b.y - a.y);
+	}
+
 	public void decreaseLength(double count) {
 
 		if (count > getLength()) {
@@ -24,7 +28,7 @@ public class Vector extends Coordinate {
 		}
 	}
 
-	private double getLength() {
+	public double getLength() {
 		return Math.sqrt(x * x + y * y);
 	}
 
