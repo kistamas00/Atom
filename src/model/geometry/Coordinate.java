@@ -14,6 +14,10 @@ public class Coordinate {
 		this(i, i);
 	}
 
+	public double getDistanceFrom(Coordinate c) {
+		return new Vector(this, c).getLength();
+	}
+
 	public double getX() {
 		return x;
 	}
