@@ -147,4 +147,8 @@ public class Atom {
 	public Vector getVelocity() {
 		return velocity;
 	}
+
+	public boolean isIntelligent() {
+		return neuralNetwork != null;
+	}
 }
