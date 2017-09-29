@@ -56,7 +56,7 @@ public class NeuralNetwork {
 			List<Neuron> newLayer = new ArrayList<>();
 			for (int i = 0; i < numberOfLayer; i++) {
 				Neuron newElement = new Neuron(
-						(Neuron[]) previousLayer.toArray());
+						previousLayer.toArray(new Neuron[0]));
 				newLayer.add(newElement);
 			}
 			layers.add(newLayer);
@@ -69,7 +69,8 @@ public class NeuralNetwork {
 		final List<Neuron> firstLayer = layers.get(0);
 
 		if (inputs.length != firstLayer.size()) {
-			throw new IllegalStateException();
+			throw new IllegalStateException(
+					"The inputs parameter size doesn't match the number of neurons in the first layer!");
 		}
 
 		for (int i = 0; i < inputs.length; i++) {
@@ -79,7 +80,8 @@ public class NeuralNetwork {
 
 	public double[] getOutputs() {
 
-		for (List<Neuron> layer : layers) {
+		for (int i = 1; i < layers.size(); i++) {
+			List<Neuron> layer = layers.get(i);
 			layer.forEach(n -> n.calculateOutput());
 		}
 
