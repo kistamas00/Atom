@@ -92,4 +92,9 @@ public class NeuralNetwork {
 
 		return outputs.stream().mapToDouble(Double::doubleValue).toArray();
 	}
+
+	public double[] getDNA() {
+		// TODO implement
+		return null;
+	}
 }
