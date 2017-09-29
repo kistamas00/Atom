@@ -22,8 +22,23 @@ public class Atom {
 	private long timeOfPreviousMove;
 	private double size;
 	private double distanceOfView;
+	private NeuralNetwork neuralNetwork;
 
 	public Atom() {
+		this(DEFAULT_LIVE_STATE, DEFAULT_SIZE);
+	}
+
+	public Atom(boolean isAlive) {
+
+		this(isAlive, DEFAULT_SIZE);
+	}
+
+	public Atom(double size) {
+
+		this(DEFAULT_LIVE_STATE, size);
+	}
+
+	public Atom(boolean isAlive, double size) {
 
 		Random random = new Random();
 
@@ -31,13 +46,23 @@ public class Atom {
 				random.nextInt(Arena.HEIGHT));
 		this.velocity = new Vector(0);
 
-		this.size = 5;
+		this.size = size;
 		this.distanceOfView = 30;
+
+		if (isAlive) {
+			this.neuralNetwork = new NeuralNetwork(NUMBER_OF_VIEW_RAYS,
+					(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0),
+					(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0), 2);
+		}
 
 		this.timeOfPreviousMove = System.currentTimeMillis();
 	}
 
 	public void move(double[] view) {
+
+		final long currentTime = System.currentTimeMillis();
+		final double seconds = (currentTime - timeOfPreviousMove) / 1000.0;
+		timeOfPreviousMove = currentTime;
 
 		if (view.length != NUMBER_OF_VIEW_RAYS) {
 			throw new IllegalStateException(
@@ -46,27 +71,45 @@ public class Atom {
 			lastView = view;
 		}
 
-		// TODO make a decision
+		if (isIntelligent()) {
 
-		// TODO recalculate velocity
+			// make a decision
+			neuralNetwork.setInputs(view);
+			double[] outputs = neuralNetwork.getOutputs();
+
+			if (outputs.length != 2) {
+				throw new IllegalStateException(
+						"Number of neural network outputs doesn't two!");
+			}
+
+			// recalculate velocity
+			final double maxSpeedDiff = MAX_ACCELERATION * seconds;
+			velocity.set(velocity.getX() + maxSpeedDiff * outputs[0],
+					velocity.getY() + maxSpeedDiff * outputs[1]);
+		} else {
+			throw new UnsupportedOperationException(
+					"Brainless atom can't move!");
+		}
 
 		// set position
-		long currentTime = System.currentTimeMillis();
-		double seconds = (currentTime - timeOfPreviousMove) / 1000.0;
-		timeOfPreviousMove = currentTime;
 		position.set(position.getX() + velocity.getX() * seconds,
 				position.getY() + velocity.getY() * seconds);
+
 		if (position.getX() < 0) {
 			position.setX(0);
+			velocity.setX(0);
 		}
 		if (position.getX() >= Arena.WIDTH) {
 			position.setX(Arena.WIDTH - 1);
+			velocity.setX(0);
 		}
 		if (position.getY() < 0) {
 			position.setY(0);
+			velocity.setY(0);
 		}
 		if (position.getY() >= Arena.HEIGHT) {
 			position.setY(Arena.HEIGHT - 1);
+			velocity.setY(0);
 		}
 
 		// decrease velocity (friction)
@@ -75,11 +118,28 @@ public class Atom {
 	}
 
 	public void eat(Atom a) {
-		// TODO increase size
+
+		double area = this.size * this.size * Math.PI;
+		double targetArea = a.size * a.size * Math.PI;
+
+		area += targetArea;
+		a.die();
+
+		final double newSize = Math.sqrt(area / Math.PI);
+
+		this.distanceOfView += newSize - this.size;
+		this.size = newSize;
 	}
 
 	private void die() {
-		// TODO implement
+
+		String logMessage = this + " has dead!";
+
+		if (!isIntelligent()) {
+			logMessage = "(" + logMessage + ")";
+		}
+
+		System.out.println(logMessage);
 	}
 
 	public Coordinate[] getPointsOfView() {
@@ -100,6 +160,11 @@ public class Atom {
 	}
 
 	public void drawVisibility(Graphics2D target) {
+
+		if (!isIntelligent()) {
+			return;
+		}
+
 		target.drawOval((int) Math.round(position.getX() - distanceOfView),
 				(int) Math.round(position.getY() - distanceOfView),
 				(int) Math.round(2 * distanceOfView),
