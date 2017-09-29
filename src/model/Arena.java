@@ -13,26 +13,36 @@ import model.geometry.Vector;
 
 public class Arena {
 
-	public static final int WIDTH = 500;
-	public static final int HEIGHT = 500;
-	private final Set<Atom> atoms;
+	public static final int WIDTH = 800;
+	public static final int HEIGHT = 600;
+	private final Set<Atom> intelligentAtoms;
+	private final Set<Atom> brainlessAtoms;
+	private final Set<Atom> allAtoms;
 
 	public Arena(Collection<? extends Atom> atoms) {
 
-		this.atoms = new HashSet<>();
+		Set<Atom> tmpSet = new HashSet<>(atoms);
 
-		this.atoms.addAll(atoms);
+		this.intelligentAtoms = tmpSet.stream().filter(Atom::isIntelligent)
+				.collect(Collectors.toSet());
+		tmpSet.removeAll(this.intelligentAtoms);
+		this.brainlessAtoms = new HashSet<>(tmpSet);
+
+		this.allAtoms = new HashSet<>();
+		this.allAtoms.addAll(intelligentAtoms);
+		this.allAtoms.addAll(brainlessAtoms);
+
 	}
 
 	public void doStep() {
 
-		// move every atom
-		for (Atom atom : atoms) {
+		// move every living atom
+		for (Atom atom : intelligentAtoms) {
 
 			double[] atomInput = new double[Atom.NUMBER_OF_VIEW_RAYS];
 			Arrays.fill(atomInput, -1);
 
-			for (Atom viewableAtom : atoms.stream().filter(
+			for (Atom viewableAtom : allAtoms.stream().filter(
 					targetAtom -> targetAtom.getPosition().getDistanceFrom(
 							atom.getPosition()) < targetAtom.getSize()
 									+ atom.getDistanceOfView()
@@ -80,14 +90,23 @@ public class Arena {
 
 		// remove dead atoms
 		Set<Atom> killedAtoms = new HashSet<>();
-		for (Atom atom : atoms) {
+		for (Atom atom : allAtoms) {
 
-			atoms.forEach(targetAtom -> {
+			allAtoms.forEach(targetAtom -> {
 
-				final double minSize = atom.getSize() < targetAtom.getSize()
-						? atom.getSize() : targetAtom.getSize();
-				if (targetAtom.getPosition()
-						.getDistanceFrom(atom.getPosition()) < minSize
+				double minSize;
+				double maxSize;
+
+				if (atom.getSize() < targetAtom.getSize()) {
+					minSize = atom.getSize();
+					maxSize = targetAtom.getSize();
+				} else {
+					minSize = targetAtom.getSize();
+					maxSize = atom.getSize();
+				}
+
+				if (targetAtom.getPosition().getDistanceFrom(
+						atom.getPosition()) <= maxSize - minSize
 						&& atom.getSize() > targetAtom.getSize()
 						&& !killedAtoms.contains(targetAtom)
 						&& !killedAtoms.contains(atom) && targetAtom != atom) {
@@ -98,7 +117,9 @@ public class Arena {
 			});
 		}
 
-		atoms.removeAll(killedAtoms);
+		intelligentAtoms.removeAll(killedAtoms);
+		brainlessAtoms.removeAll(killedAtoms);
+		allAtoms.removeAll(killedAtoms);
 	}
 
 	public void draw(Graphics2D target) {
@@ -106,7 +127,7 @@ public class Arena {
 		target.setColor(Color.WHITE);
 		target.fillRect(0, 0, WIDTH, HEIGHT);
 
-		for (Atom atom : atoms) {
+		for (Atom atom : allAtoms) {
 
 			target.setColor(Color.GRAY);
 			atom.drawVisibility(target);
@@ -117,5 +138,30 @@ public class Arena {
 			target.setColor(Color.BLACK);
 			atom.drawAtom(target);
 		}
+	}
+
+	public void addAtoms(Collection<? extends Atom> newAtoms) {
+
+		newAtoms.forEach(newAtom -> {
+
+			if (newAtom.isIntelligent()) {
+				intelligentAtoms.add(newAtom);
+			} else {
+				brainlessAtoms.add(newAtom);
+			}
+		});
+
+		allAtoms.addAll(newAtoms);
+	}
+
+	public Set<Atom> pullOutIntelligentAtomsAndClear() {
+
+		Set<Atom> result = new HashSet<>(intelligentAtoms);
+
+		intelligentAtoms.clear();
+		brainlessAtoms.clear();
+		allAtoms.clear();
+
+		return result;
 	}
 }
