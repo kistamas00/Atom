@@ -15,7 +15,7 @@ public class Frame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private Panel panel;
 
-	public Frame(Arena arena, Atom atom) {
+	public Frame(Arena arena) {
 
 		this.panel = new Panel(arena);
 
@@ -27,6 +27,12 @@ public class Frame extends JFrame {
 		this.setVisible(true);
 		this.pack();
 
+	}
+
+	public Frame(Arena arena, Atom controlledAtom) {
+
+		this(arena);
+
 		this.addKeyListener(new KeyListener() {
 
 			@Override
@@ -36,16 +42,16 @@ public class Frame extends JFrame {
 
 				switch (keyChar) {
 				case 'w':
-					atom.getVelocity().add(new Vector(0, -10));
+					controlledAtom.getVelocity().add(new Vector(0, -10));
 					break;
 				case 'a':
-					atom.getVelocity().add(new Vector(-10, 0));
+					controlledAtom.getVelocity().add(new Vector(-10, 0));
 					break;
 				case 's':
-					atom.getVelocity().add(new Vector(0, 10));
+					controlledAtom.getVelocity().add(new Vector(0, 10));
 					break;
 				case 'd':
-					atom.getVelocity().add(new Vector(10, 0));
+					controlledAtom.getVelocity().add(new Vector(10, 0));
 					break;
 				}
 			}
@@ -60,7 +66,6 @@ public class Frame extends JFrame {
 
 			}
 		});
-
 	}
 
 	public Panel getPanel() {
