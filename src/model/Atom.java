@@ -151,4 +151,14 @@ public class Atom {
 	public boolean isIntelligent() {
 		return neuralNetwork != null;
 	}
+
+	public double[] getDNA() {
+
+		if (!isIntelligent()) {
+			throw new UnsupportedOperationException(
+					"Brainless atom hasn't DNA!");
+		}
+
+		return neuralNetwork.getDNA();
+	}
 }
