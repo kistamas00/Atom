@@ -13,7 +13,7 @@ import model.geometry.Vector;
 
 public class Arena {
 
-	public static final int WIDTH = 800;
+	public static final int WIDTH = 1000;
 	public static final int HEIGHT = 600;
 	private final Set<Atom> intelligentAtoms;
 	private final Set<Atom> brainlessAtoms;

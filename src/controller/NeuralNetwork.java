@@ -46,6 +46,38 @@ public class NeuralNetwork {
 
 	private final List<List<Neuron>> layers;
 
+	public NeuralNetwork(double[] dna, int... numberOfLayers) {
+
+		this(numberOfLayers);
+
+		int allConnection = 0;
+		for (int i = 1; i < numberOfLayers.length; i++) {
+			allConnection += numberOfLayers[i - 1] * numberOfLayers[i];
+		}
+
+		if (dna.length != allConnection) {
+
+			throw new IllegalStateException(
+					"Length of the DNA doesn't match with the number of all connections!");
+
+		} else {
+
+			int DNAindex = 0;
+			for (int i = 1; i < layers.size(); i++) {
+
+				List<Neuron> layer = layers.get(i);
+
+				for (Neuron neuron : layer) {
+
+					for (int j = 0; j < neuron.weights.length; j++) {
+
+						neuron.weights[j] = dna[DNAindex++];
+					}
+				}
+			}
+		}
+	}
+
 	public NeuralNetwork(int... numberOfLayers) {
 
 		this.layers = new ArrayList<>();
@@ -94,7 +126,22 @@ public class NeuralNetwork {
 	}
 
 	public double[] getDNA() {
-		// TODO implement
-		return null;
+
+		List<Double> dna = new ArrayList<>();
+
+		for (int i = 1; i < layers.size(); i++) {
+
+			List<Neuron> layer = layers.get(i);
+
+			for (Neuron neuron : layer) {
+
+				for (double weight : neuron.weights) {
+
+					dna.add(weight);
+				}
+			}
+		}
+
+		return dna.stream().mapToDouble(Double::doubleValue).toArray();
 	}
 }

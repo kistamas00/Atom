@@ -25,20 +25,22 @@ public class Atom {
 	private NeuralNetwork neuralNetwork;
 
 	public Atom() {
-		this(DEFAULT_LIVE_STATE, DEFAULT_SIZE);
+		this(DEFAULT_LIVE_STATE, DEFAULT_SIZE, null);
 	}
 
 	public Atom(boolean isAlive) {
-
-		this(isAlive, DEFAULT_SIZE);
+		this(isAlive, DEFAULT_SIZE, null);
 	}
 
 	public Atom(double size) {
-
-		this(DEFAULT_LIVE_STATE, size);
+		this(DEFAULT_LIVE_STATE, size, null);
 	}
 
-	public Atom(boolean isAlive, double size) {
+	public Atom(double[] dna) {
+		this(true, DEFAULT_SIZE, dna);
+	}
+
+	public Atom(boolean isAlive, double size, double[] dna) {
 
 		Random random = new Random();
 
@@ -50,9 +52,19 @@ public class Atom {
 		this.distanceOfView = 30;
 
 		if (isAlive) {
-			this.neuralNetwork = new NeuralNetwork(NUMBER_OF_VIEW_RAYS,
-					(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0),
-					(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0), 2);
+
+			if (dna == null) {
+
+				this.neuralNetwork = new NeuralNetwork(NUMBER_OF_VIEW_RAYS,
+						(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0),
+						(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0), 2);
+
+			} else {
+
+				this.neuralNetwork = new NeuralNetwork(dna, NUMBER_OF_VIEW_RAYS,
+						(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0),
+						(int) Math.round(NUMBER_OF_VIEW_RAYS / 2.0), 2);
+			}
 		}
 
 		this.timeOfPreviousMove = System.currentTimeMillis();
@@ -137,6 +149,8 @@ public class Atom {
 
 		if (!isIntelligent()) {
 			logMessage = "(" + logMessage + ")";
+		} else {
+			logMessage = " " + logMessage;
 		}
 
 		System.out.println(logMessage);
@@ -229,6 +243,8 @@ public class Atom {
 					"Brainless atom hasn't DNA!");
 		}
 
-		return neuralNetwork.getDNA();
+		double[] result = neuralNetwork.getDNA();
+
+		return result;
 	}
 }
