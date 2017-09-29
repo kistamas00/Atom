@@ -4,12 +4,17 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.Random;
 
+import controller.NeuralNetwork;
 import model.geometry.Coordinate;
 import model.geometry.Vector;
 
 public class Atom {
 
-	public static final int NUMBER_OF_VIEW_RAYS = 3;
+	public static final int NUMBER_OF_VIEW_RAYS = 30;
+
+	private static final double DEFAULT_SIZE = 5;
+	private static final boolean DEFAULT_LIVE_STATE = false;
+	private static final double MAX_ACCELERATION = 250;
 
 	private final Coordinate position;
 	private final Vector velocity;
