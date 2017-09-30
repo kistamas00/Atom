@@ -13,8 +13,8 @@ import model.geometry.Vector;
 
 public class Arena {
 
-	public static final int WIDTH = 1000;
-	public static final int HEIGHT = 600;
+	public static final int WIDTH = 1400;
+	public static final int HEIGHT = 700;
 	private final Set<Atom> intelligentAtoms;
 	private final Set<Atom> brainlessAtoms;
 	private final Set<Atom> allAtoms;
@@ -36,12 +36,15 @@ public class Arena {
 
 	public void doStep() {
 
+		Set<Atom> killedAtoms = new HashSet<>();
+
 		// move every living atom
 		for (Atom atom : intelligentAtoms) {
 
 			double[] atomInput = new double[Atom.NUMBER_OF_VIEW_RAYS];
-			Arrays.fill(atomInput, -1);
+			Arrays.fill(atomInput, 0);
 
+			// viewable atoms
 			for (Atom viewableAtom : allAtoms.stream().filter(
 					targetAtom -> targetAtom.getPosition().getDistanceFrom(
 							atom.getPosition()) < targetAtom.getSize()
@@ -77,19 +80,72 @@ public class Arena {
 								.getDistanceFrom(viewableAtom.getPosition())
 								/ atom.getDistanceOfView();
 
-						if (atomInput[i] == -1
-								|| atomInput[i] >= distanceRate) {
-							atomInput[i] = distanceRate > 1 ? 1 : distanceRate;
+						if (distanceRate > 1) {
+							distanceRate = 1;
+						}
+
+						if (viewableAtom.getSize() > atom.getSize()) {
+							distanceRate *= -1;
+						} else if (viewableAtom.getSize() == atom.getSize()) {
+							distanceRate = 0;
+						}
+
+						if (atomInput[i] == 0 || Math.abs(atomInput[i]) > Math
+								.abs(distanceRate)) {
+							atomInput[i] = distanceRate;
 						}
 					}
 				}
 			}
 
-			atom.move(atomInput);
+			// viewable walls
+			Coordinate[] pointsOfView = atom.getPointsOfView();
+			for (int i = 0; i < pointsOfView.length; i++) {
+
+				final Coordinate pointOfView = pointsOfView[i];
+				final Set<Double> distances = new HashSet<>();
+
+				if (pointOfView.getX() < 0) {
+					distances.add(atom.getPosition().getX());
+				}
+				if (pointOfView.getX() >= Arena.WIDTH) {
+					distances.add(Arena.WIDTH - 1 - atom.getPosition().getX());
+				}
+				if (pointOfView.getY() < 0) {
+					distances.add(atom.getPosition().getY());
+				}
+				if (pointOfView.getY() >= Arena.HEIGHT) {
+					distances.add(Arena.HEIGHT - 1 - atom.getPosition().getY());
+				}
+
+				if (distances.size() > 0) {
+
+					final double minDistance = distances.stream()
+							.collect(Collectors
+									.summarizingDouble(Double::doubleValue))
+							.getMin();
+					double distanceRate = minDistance
+							/ atom.getDistanceOfView();
+
+					if (distanceRate > 1) {
+						distanceRate = 1;
+					}
+
+					distanceRate *= -1;
+
+					if (atomInput[i] == 0 || Math.abs(atomInput[i]) > Math
+							.abs(distanceRate)) {
+						atomInput[i] = distanceRate;
+					}
+				}
+			}
+
+			if (!atom.move(atomInput)) {
+				killedAtoms.add(atom);
+			}
 		}
 
 		// remove dead atoms
-		Set<Atom> killedAtoms = new HashSet<>();
 		for (Atom atom : allAtoms) {
 
 			allAtoms.forEach(targetAtom -> {
@@ -106,7 +162,7 @@ public class Arena {
 				}
 
 				if (targetAtom.getPosition().getDistanceFrom(
-						atom.getPosition()) <= maxSize - minSize
+						atom.getPosition()) <= maxSize - minSize + 5
 						&& atom.getSize() > targetAtom.getSize()
 						&& !killedAtoms.contains(targetAtom)
 						&& !killedAtoms.contains(atom) && targetAtom != atom) {
@@ -127,7 +183,9 @@ public class Arena {
 		target.setColor(Color.WHITE);
 		target.fillRect(0, 0, WIDTH, HEIGHT);
 
-		for (Atom atom : allAtoms) {
+		Set<Atom> shadowCopy = new HashSet<>(allAtoms);
+
+		for (Atom atom : shadowCopy) {
 
 			target.setColor(Color.GRAY);
 			atom.drawVisibility(target);

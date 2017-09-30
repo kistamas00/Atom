@@ -10,11 +10,12 @@ import model.geometry.Vector;
 
 public class Atom {
 
-	public static final int NUMBER_OF_VIEW_RAYS = 30;
+	public static final int NUMBER_OF_VIEW_RAYS = 50;
 
 	private static final double DEFAULT_SIZE = 5;
 	private static final boolean DEFAULT_LIVE_STATE = false;
-	private static final double MAX_ACCELERATION = 250;
+	private static final double DEFAULT_DISTANCE_OF_VIEW = 50;
+	private static final double MAX_ACCELERATION = 200;
 
 	private final Coordinate position;
 	private final Vector velocity;
@@ -49,7 +50,7 @@ public class Atom {
 		this.velocity = new Vector(0);
 
 		this.size = size;
-		this.distanceOfView = 30;
+		this.distanceOfView = DEFAULT_DISTANCE_OF_VIEW;
 
 		if (isAlive) {
 
@@ -70,7 +71,7 @@ public class Atom {
 		this.timeOfPreviousMove = System.currentTimeMillis();
 	}
 
-	public void move(double[] view) {
+	public boolean move(double[] view) {
 
 		final long currentTime = System.currentTimeMillis();
 		final double seconds = (currentTime - timeOfPreviousMove) / 1000.0;
@@ -107,6 +108,12 @@ public class Atom {
 		position.set(position.getX() + velocity.getX() * seconds,
 				position.getY() + velocity.getY() * seconds);
 
+		if (position.getX() < 0 || position.getX() >= Arena.WIDTH
+				|| position.getY() < 0 || position.getY() >= Arena.HEIGHT) {
+
+			return false;
+		}
+
 		if (position.getX() < 0) {
 			position.setX(0);
 			velocity.setX(0);
@@ -127,6 +134,8 @@ public class Atom {
 		// decrease velocity (friction)
 		velocity.decreaseLength(100 * seconds);
 
+		return true;
+
 	}
 
 	public void eat(Atom a) {
@@ -137,7 +146,11 @@ public class Atom {
 		area += targetArea;
 		a.die();
 
-		final double newSize = Math.sqrt(area / Math.PI);
+		double newSize = Math.sqrt(area / Math.PI) * 1.05;
+
+		if (newSize > 100) {
+			newSize = 100;
+		}
 
 		this.distanceOfView += newSize - this.size;
 		this.size = newSize;
@@ -145,15 +158,15 @@ public class Atom {
 
 	private void die() {
 
-		String logMessage = this + " has dead!";
-
-		if (!isIntelligent()) {
-			logMessage = "(" + logMessage + ")";
-		} else {
-			logMessage = " " + logMessage;
-		}
-
-		System.out.println(logMessage);
+		// String logMessage = this + " has dead!";
+		//
+		// if (!isIntelligent()) {
+		// logMessage = "(" + logMessage + ")";
+		// } else {
+		// logMessage = " " + logMessage;
+		// }
+		//
+		// System.out.println(logMessage);
 	}
 
 	public Coordinate[] getPointsOfView() {
@@ -190,8 +203,12 @@ public class Atom {
 
 			Coordinate pointOfView = pointsOfView[i];
 
-			if (lastView != null && lastView[i] >= 0) {
-				target.setColor(Color.ORANGE);
+			if (lastView != null && lastView[i] != 0) {
+				if (lastView[i] > 0) {
+					target.setColor(Color.YELLOW);
+				} else {
+					target.setColor(Color.ORANGE);
+				}
 			}
 
 			target.drawLine((int) Math.round(position.getX()),

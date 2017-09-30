@@ -14,17 +14,28 @@ import view.Frame;
 
 public class Main {
 
-	private static int NUMBER_OF_POPULATION = 10;
-	private static int NUMBER_OF_FREE_FOOD = 50;
-	private static double MUTATION_RATE = 0.01;
-	private static int GENERATION_TIME = 5000;
+	private static int NUMBER_OF_POPULATION = 100;
+	private static int NUMBER_OF_FREE_FOOD = 200;
+	private static double MUTATION_RATE = 0.03;
+	private static int GENERATION_TIME = 7500;
 
-	private static Set<Atom> generateBrainlessAtomsIn() {
+	private static Set<Atom> generateBrainlessAtoms() {
 
 		Set<Atom> atoms = new HashSet<>();
 
 		for (int i = 0; i < NUMBER_OF_FREE_FOOD; i++) {
-			atoms.add(new Atom(3));
+			atoms.add(new Atom(4));
+		}
+
+		return atoms;
+	}
+
+	private static Set<Atom> generateIntelligentAtoms() {
+
+		Set<Atom> atoms = new HashSet<>();
+
+		for (int i = 0; i < NUMBER_OF_POPULATION; i++) {
+			atoms.add(new Atom(true));
 		}
 
 		return atoms;
@@ -40,12 +51,10 @@ public class Main {
 		Set<Atom> atoms = new HashSet<>();
 
 		// generate none moving atoms
-		atoms.addAll(generateBrainlessAtomsIn());
+		atoms.addAll(generateBrainlessAtoms());
 
 		// generate living atoms
-		for (int i = 0; i < NUMBER_OF_POPULATION; i++) {
-			atoms.add(new Atom(true));
-		}
+		atoms.addAll(generateIntelligentAtoms());
 
 		arena.addAtoms(atoms);
 
@@ -150,13 +159,13 @@ public class Main {
 					generationCounter++;
 
 				} else {
-					System.err.println("Generation " + generationCounter
-							+ " has reloaded!");
-					arena.addAtoms(Arrays.asList(new Atom(true)));
+					System.err.println("World restart!");
+					arena.addAtoms(generateIntelligentAtoms());
+					generationCounter = 0;
 				}
 
 				// loop action(s)
-				arena.addAtoms(generateBrainlessAtomsIn());
+				arena.addAtoms(generateBrainlessAtoms());
 				generationBithDate = System.currentTimeMillis();
 			}
 
